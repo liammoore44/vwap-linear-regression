@@ -21,11 +21,10 @@ client = Client(twilio_sid, twilio_auth)
 
 indicators = TechIndicators(alphavantage_key, output_format='pandas')
 time_series_data = TimeSeries(alphavantage_key, output_format='pandas')
-ticker = 'KGC'
 
 
 def get_universe():
-    #call daily
+    
     df = pd.read_html(yahoo_url)[0]
     old_df = pd.read_csv(f"C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\ml-vwap-ticker\\{date}.csv")
     df = old_df.append(df)
@@ -47,7 +46,7 @@ def get_historic_data():
 
     dict_of_dataframes = {}
 
-    for ticker in tickers[:6]:
+    for ticker in set(tickers):
         data = time_series_data.get_daily(symbol=ticker, outputsize='full')
         data = data[0].iloc[::-1].reset_index(drop=True)
         dict_of_dataframes.update({ticker:data})
@@ -88,7 +87,7 @@ def linear_regression():
         score = clf.score(X_test, y_test)
         forecasted_values = clf.predict(X_forecasted)
         
-        if score > 0.8 and score < 1:
+        if (score > 0.9 and score < 1) and (forecasted_values[-1] > df['4. close'].iloc[-1]):
             print(f"{ticker}: forecast {forecasted_values}")
             data = data.append({'tickers': ticker}, ignore_index=True)
 
@@ -120,7 +119,7 @@ def make_df(ticker):
     data[f'{ticker}pct_change'] = (data['4. close'] - data['1. open'])/ data['1. open'] * 100
     df = data.join(vwap)
     df[f'{ticker} price/vwap range'] = df['4. close'] - df['VWAP']
-    df.to_csv(f"C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\{ticker}.csv", index=True)
+    df.to_csv(f"C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\ticker intraday data\\{ticker}.csv", index=True)
     global ranges
     ranges = [value for value in df[f'{ticker} price/vwap range'].values[-220:]]
 
@@ -173,7 +172,7 @@ def profit_loss():
         
         last_price = get_stock_data(ticker)
 
-        if last_price <= entry_price*0.94:
+        if last_price <= entry_price*0.96:
             client.messages.create(
                 to = '+4407860209951',
                 from_= '+13343453192',
@@ -181,31 +180,33 @@ def profit_loss():
             )
             # row = owned_stocks_df.loc[owned_stocks_df['Stock'] == ticker]
             # row['Owned'] = 'False'
-        elif last_price >= entry_price*1.1:
+        elif last_price >= entry_price*1.6:
             client.messages.create(
                 to = '+4407860209951',
                 from_= '+13343453192',
-                body=f'\nPOSITION IN {ticker} AT 10% PROFIT. - PRICE({last_price})'
+                body=f'\nPOSITION IN {ticker} AT 6% PROFIT. - PRICE({last_price})'
             )
-        elif last_price >= entry_price*1.15:
+        elif last_price >= entry_price*1.12:
             client.messages.create(
                 to = '+4407860209951',
                 from_= '+13343453192',
-                body=f'\nSTOP LOSS TRIGGERED FOR {ticker} AT 15% PROFIT. - PRICE({last_price})'
+                body=f'\nSTOP LOSS TRIGGERED FOR {ticker} AT 12% PROFIT. - PRICE({last_price})'
             )        
             # row = owned_stocks_df.loc[owned_stocks_df['Stock'] == ticker]
             # row['Owned'] = 'False'
         else:
             time.sleep(20)
 
+
 dataframe = pd.read_csv("C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\Linear Regression Tickers.csv")
-use_tickers = list(dataframe['tickers'])
-    
+ticker = list(dataframe['tickers'])
+
+
 if __name__ == '__main__':
 
-    get_universe()
+#     get_universe()
  
     with multiprocessing.Pool() as pool:
-        results = pool.starmap(check_vwap, product(use_tickers[:5]))
+        results = pool.starmap(check_vwap, product(ticker[:5]))
         print(results)
 
