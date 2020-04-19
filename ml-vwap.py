@@ -100,7 +100,7 @@ def get_clock():
     return json.loads(request.content)
 
 
-def get_stock_data(ticker):
+def last_price(ticker):
     parameters = {
     "apikey": td_key,
     "symbol": ticker
@@ -135,11 +135,11 @@ def check_vwap(ticker):
         largest_range = max(ranges)
 
         if new_range == largest_range:
-            print('watch function triggered')
+            print(f'watch function triggered for {ticker}')
             trigger_buy()
             profit_loss()
         else:
-            print('...')
+            print(f'checking {ticker} vwap...')
             time.sleep(900.1)
 
 
@@ -148,31 +148,30 @@ def trigger_buy():
     while get_clock()["is_open"] == True:
 
         new_data = make_df(ticker)
+        stop_price = last_price(ticker) * 0.96
 
         if (new_data[1] <=  new_data[0]*1.03) and [range > 0 for range in ranges[-3:]]:
             client.messages.create(
                 to = '+4407860209951',
                 from_= '+13343453192',
-                body=f'\nBUY SIGNAL FOR {ticker} TRIGGERED AT ${new_data[1]}.'
+                body=f'\nBUY SIGNAL FOR {ticker} TRIGGERED AT ${new_data[1]} WITH STOP LOSS AT {stop_price}.'
             )
-            print('buy function triggered')
+            print(f'buy function triggered- {ticker}')
             # row = owned_stocks_df.loc[owned_stocks_df['Stock'] == ticker]
             # row['Owned'] = 'True'
             global entry_price 
             entry_price = new_data[1]
             break
         else:
-            print('-')
+            print(f'waiting on buy trigger for {ticker}')
             time.sleep(900.1)
 
 
 def profit_loss():
 
     while get_clock()['is_open'] == True:
-        
-        last_price = get_stock_data(ticker)
 
-        if last_price <= entry_price*0.96:
+        if last_price(ticker) <= entry_price*0.96:
             client.messages.create(
                 to = '+4407860209951',
                 from_= '+13343453192',
@@ -201,7 +200,6 @@ def profit_loss():
 dataframe = pd.read_csv("C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\Linear Regression Tickers.csv")
 ticker = list(dataframe['tickers'])
 
-
 if __name__ == '__main__':
 
 #     get_universe()
@@ -209,4 +207,3 @@ if __name__ == '__main__':
     with multiprocessing.Pool() as pool:
         results = pool.starmap(check_vwap, product(ticker[:5]))
         print(results)
-
