@@ -119,7 +119,7 @@ def make_df(ticker):
 
 def check_vwap(ticker):
 
-    while get_clock()["is_open"] == True:
+    while get_clock()["is_open"] == False:
 
         new_data = make_df(ticker)
         new_range = new_data[0]
@@ -188,16 +188,12 @@ def profit_loss():
         else:
             time.sleep(20)
 
-# with open("C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\Linear Regression Tickers.csv") as file:
-#     reader = csv.reader(file)
-#     use_tickers = [i for i in reader]
-    
 dataframe = pd.read_csv("C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\Linear Regression Tickers.csv")
 use_tickers = list(dataframe['tickers'])
-print(use_tickers)
-# if __name__ == '__main__':
-#     use_tickers = pd.read_csv("C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\Linear Regression Tickers.csv")
+    
+if __name__ == '__main__':
 
-#     with multiprocessing.Pool() as pool:
-#         results = pool.starmap(check_vwap, product(ticker))
+    with multiprocessing.Pool() as pool:
+        results = pool.starmap(check_vwap, product(use_tickers[:5]))
+        print(results)
 
