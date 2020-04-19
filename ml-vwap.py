@@ -27,11 +27,10 @@ ticker = 'KGC'
 def get_universe():
     #call daily
     df = pd.read_html(yahoo_url)[0]
-    # old_df = pd.read_csv(f"C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\ml-vwap-ticker\\{date}.csv")
-    # df = old_df.append(df)
+    old_df = pd.read_csv(f"C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\ml-vwap-ticker\\{date}.csv")
+    df = old_df.append(df)
     df.to_csv(f"C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\ml-vwap-ticker{date}.csv")
 
-get_universe()
 
 def get_historic_data():
 
@@ -202,9 +201,11 @@ def profit_loss():
 dataframe = pd.read_csv("C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\Linear Regression Tickers.csv")
 use_tickers = list(dataframe['tickers'])
     
-# if __name__ == '__main__':
-        
-#     with multiprocessing.Pool() as pool:
-#         results = pool.starmap(check_vwap, product(use_tickers[:5]))
-#         print(results)
+if __name__ == '__main__':
+
+    get_universe()
+ 
+    with multiprocessing.Pool() as pool:
+        results = pool.starmap(check_vwap, product(use_tickers[:5]))
+        print(results)
 
