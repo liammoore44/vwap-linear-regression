@@ -9,8 +9,10 @@ from itertools import product
 
 import pandas as pd
 import numpy as np
-import time, math, requests, json, multiprocessing, csv
+import time, datetime, math, requests, json, multiprocessing, csv
 
+
+date = datetime.date.today().isocalendar()[:-1]
 
 yahoo_url = "https://uk.finance.yahoo.com/screener/predefined/day_gainers"
 
@@ -25,19 +27,28 @@ ticker = 'KGC'
 def get_universe():
     #call daily
     df = pd.read_html(yahoo_url)[0]
-    df.to_csv("C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\ml-vwap-ticker.csv")
-    df = df.reset_index()
+    # old_df = pd.read_csv(f"C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\ml-vwap-ticker\\{date}.csv")
+    # df = old_df.append(df)
+    df.to_csv(f"C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\ml-vwap-ticker{date}.csv")
 
+get_universe()
 
 def get_historic_data():
 
-    ticker_df = pd.read_csv("C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\ml-vwap-ticker.csv")
+    ticker_df = pd.read_csv(f"C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\ml-vwap-ticker{date}.csv")
     ticker_list = [ticker for ticker in ticker_df['Symbol'].values]
+    tickers = []
+
+    for ticker in ticker_list:
+        count = ticker_list.count(ticker)
+        if count > 1:
+            tickers.append(ticker)
+        
     time_series_data = TimeSeries(alphavantage_key, output_format='pandas') 
 
     dict_of_dataframes = {}
 
-    for ticker in ticker_list[:6]:
+    for ticker in tickers[:6]:
         data = time_series_data.get_daily(symbol=ticker, outputsize='full')
         data = data[0].iloc[::-1].reset_index(drop=True)
         dict_of_dataframes.update({ticker:data})
@@ -191,9 +202,9 @@ def profit_loss():
 dataframe = pd.read_csv("C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\Linear Regression Tickers.csv")
 use_tickers = list(dataframe['tickers'])
     
-if __name__ == '__main__':
-
-    with multiprocessing.Pool() as pool:
-        results = pool.starmap(check_vwap, product(use_tickers[:5]))
-        print(results)
+# if __name__ == '__main__':
+        
+#     with multiprocessing.Pool() as pool:
+#         results = pool.starmap(check_vwap, product(use_tickers[:5]))
+#         print(results)
 
