@@ -21,7 +21,6 @@ client = Client(twilio_sid, twilio_auth)
 indicators = TechIndicators(alphavantage_key, output_format='pandas')
 time_series_data = TimeSeries(alphavantage_key, output_format='pandas')
 
-
 def get_universe():
     
     df = pd.read_html(yahoo_url)[0]
@@ -63,7 +62,7 @@ def make_df(ticker):
 
 def check_vwap(ticker):
 
-    while get_clock()["is_open"] == False:
+    while get_clock()["is_open"] == True:
 
         new_data = make_df(ticker)
         new_range = new_data[0]
@@ -137,11 +136,12 @@ ticker = list(dataframe['tickers'])
 
 if __name__ == '__main__':
 
-    get_universe()
+    # get_universe()
  
     with multiprocessing.Pool() as pool:
         results = pool.starmap(check_vwap, product(ticker[:5]))
         print(results)
+
 
 # figure out the owned vs not owned stocks functionality
 # add user inputs as stop loss sizes etc to make more customizable per use

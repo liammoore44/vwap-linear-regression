@@ -32,18 +32,17 @@ def get_historic_data():
     time_series_data = TimeSeries(alphavantage_key, output_format='pandas') 
 
     dict_of_dataframes = {}
-
+    print(tickers)
     for ticker in set(tickers):
 
         df = time_series_data.get_daily(symbol=ticker, outputsize='full')[0].iloc[::-1].reset_index()
         df = df[['1. open', '2. high', '3. low', '4. close', '5. volume']]
         dict_of_dataframes.update({ticker:df})
-        print(dict_of_dataframes)
         time.sleep(12.00001)
 
     return(dict_of_dataframes)
 
-
+print(get_historic_data())
 def linear_regression():
     data = pd.DataFrame(columns=['tickers'])
 
@@ -83,4 +82,4 @@ def linear_regression():
 
     data.to_csv(linear_regression_tickers)    
 
-linear_regression()
+# linear_regression()
