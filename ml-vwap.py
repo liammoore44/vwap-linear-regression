@@ -15,9 +15,7 @@ import time, datetime, math, requests, json, multiprocessing, csv
 date = datetime.date.today().isocalendar()[:-1]
 
 yahoo_url = "https://uk.finance.yahoo.com/screener/predefined/day_gainers"
-s_and_p_url = 'https://uk.finance.yahoo.com/quote/%5EGSPC/history?p=%5EGSPC'
 
-s_and_p_csv = 'C:\\Users\\lm44\\Documents\\Code\\Python\\ML\\Data\\^GSPC.csv'
 weekly_tickers = f"C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\ml-vwap-ticker{date}.csv"
 linear_regression_tickers = "C:\\Users\\lm44\\Documents\\Code\\Python\\Trading\\Data\\Linear Regression Tickers.csv"
 
@@ -34,48 +32,28 @@ def get_universe():
     df = old_df.append(df)
     df.to_csv(weekly_tickers)
 
-    new_data = pd.DataFrame(pd.read_html(s_and_p_url)[0].iloc[0]).T.rename(columns={'Close*':'Close', 'Adj. close**':'Adj Close'})
-    historic_data = pd.read_csv(s_and_p_csv)
-    s_and_p = historic_data.append(new_data).rename(columns={'Date':'date'} )
-    s_and_p.to_csv(s_and_p_csv)
-
 
 def get_historic_data():
 
     ticker_df = pd.read_csv(weekly_tickers)
-    s_and_p_df = pd.read_csv(s_and_p_csv).rename(columns={'Date':'date'} )
     ticker_list = [ticker for ticker in ticker_df['Symbol'].values]
     tickers = []
 
     for ticker in ticker_list:
         count = ticker_list.count(ticker)
-        if count > 0:
+        if count > 1:
             tickers.append(ticker)
         
     time_series_data = TimeSeries(alphavantage_key, output_format='pandas') 
 
     dict_of_dataframes = {}
 
-    for ticker in set(tickers[:2]):
-        data = time_series_data.get_daily(symbol=ticker, outputsize='full')[0].iloc[::-1].reset_index()
-        list_of_dataframes = [data, s_and_p_df]
-        length = min(len(d) for d in list_of_dataframes)
-        
-        df = pd.DataFrame()
-        for d in list_of_dataframes:
+    for ticker in set(tickers):
 
-            d = d.iloc[-length:]
-            d.set_index('date', inplace=True)
-
-            if len(df) == 0:
-                df = d
-            else:
-                df = df.join(d)
-
-        df['s&p change'] = (df['Adj Close'] - df['Open']) / df['Open'] *100
-        df = df[['1. open', '2. high', '3. low', '4. close', '5. volume', 's&p change']]
-
+        df = time_series_data.get_daily(symbol=ticker, outputsize='full')[0].iloc[::-1].reset_index()
+        df = df[['1. open', '2. high', '3. low', '4. close', '5. volume']]
         dict_of_dataframes.update({ticker:df})
+        print(dict_of_dataframes)
         time.sleep(12.00001)
 
     return(dict_of_dataframes)
@@ -120,6 +98,8 @@ def linear_regression():
 
     data.to_csv(linear_regression_tickers)    
 
+
+linear_regression()
 
 def get_clock():
     request = requests.get(clock_url, headers=headers)
@@ -226,13 +206,13 @@ def profit_loss():
 dataframe = pd.read_csv(linear_regression_tickers)
 ticker = list(dataframe['tickers'])
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    get_universe()
+#     get_universe()
  
-    with multiprocessing.Pool() as pool:
-        results = pool.starmap(check_vwap, product(ticker[:5]))
-        print(results)
+#     with multiprocessing.Pool() as pool:
+#         results = pool.starmap(check_vwap, product(ticker[:5]))
+#         print(results)
 
 # figure out the owned vs not owned stocks functionality
 # add user inputs as stop loss sizes etc to make more customizable per use
